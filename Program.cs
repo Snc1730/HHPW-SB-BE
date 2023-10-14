@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
                       policy =>
                       {
-                          policy.WithOrigins("https://localhost:7284",
+                          policy.WithOrigins("https://localhost:7027",
                                               "http://localhost:3000")
                                                .AllowAnyHeader()
                                                .AllowAnyMethod();
@@ -61,8 +61,8 @@ app.MapControllers();
 // Check if employee exists
 app.MapGet("/checkemployee/{uid}", (HHPWDbContext db, string uid) =>
 {
-    var employee = db.Employees.SingleOrDefault(x => x.Uid == uid);
-    if (employee == null)
+    var employee = db.Employees.Where(x => x.Uid == uid).ToList();
+    if (uid == null)
     {
         return Results.NotFound();
     }
@@ -77,21 +77,14 @@ app.MapPost("/api/employee", (HHPWDbContext db, Employee employee) =>
 {
     db.Employees.Add(employee);
     db.SaveChanges();
-    return Results.Created($"/api/employee/{employee.Id}", employee);
+    return Results.Created($"/api/user/{employee.Id}", employee);
 });
 
 //Get single Employee by id
 app.MapGet("/api/employee/{id}", (HHPWDbContext db, int id) =>
 {
-    var employee = db.Employees.SingleOrDefault(e => e.Id == id);
-    if (employee == null)
-    {
-        return Results.NotFound();
-    }
-    else
-    {
-        return Results.Ok(employee);
-    }
+    var user = db.Employees.Single(u => u.Id == id);
+    return user;
 });
 
 //MenuItem Endpoints
