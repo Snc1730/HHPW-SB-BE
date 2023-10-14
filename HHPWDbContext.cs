@@ -46,7 +46,8 @@ public class HHPWDbContext : DbContext
             new Employee
             {
                 Id = 1,
-                Name = "Sean Bryant"
+                Name = "Sean Bryant",
+                isEmployee = true
             },
         });
 
