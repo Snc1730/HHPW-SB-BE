@@ -229,26 +229,39 @@ app.MapGet("/api/orders/{orderId}/orderitems", (HHPWDbContext db, int orderId) =
     return Results.Ok(orderItems);
 });
 
-//Associate Menu Item with an Order
+// Associate Menu Item with an Order
 app.MapPost("/api/order/{orderId}/menuitem/{menuItemId}", (HHPWDbContext db, int orderId, int menuItemId) =>
 {
-    var order = db.Orders.SingleOrDefault(o => o.Id == orderId);
-    if (order == null)
+    try
     {
-        return Results.NotFound("Order not found.");
-    }
+        // Retrieve the order from the database
+        Order order = db.Orders.FirstOrDefault(o => o.Id == orderId);
+        if (order == null)
+            return Results.NotFound("Order not found.");
 
-    var menuItem = db.MenuItems.SingleOrDefault(mi => mi.Id == menuItemId);
-    if (menuItem == null)
+        // Retrieve the menu item from the database
+        MenuItem menuItem = db.MenuItems.FirstOrDefault(mi => mi.Id == menuItemId);
+        if (menuItem == null)
+            return Results.NotFound("Menu item not found.");
+
+        // Ensure the order's MenuItems collection is initialized
+        if (order.MenuItems == null)
+            order.MenuItems = new List<MenuItem>();
+
+        // Add the menu item to the order
+        order.MenuItems.Add(menuItem);
+
+        // Save changes to the database
+        db.SaveChanges();
+
+        return Results.Ok("Menu item associated with the order successfully.");
+    }
+    catch (Exception ex)
     {
-        return Results.NotFound("Menu item not found.");
+        return Results.Problem("An error occurred while associating menu item with order.", ex.Message);
     }
-
-    order.MenuItems.Add(menuItem);
-    db.SaveChanges();
-
-    return Results.Ok("Menu item associated with the order successfully.");
 });
+
 
 //Disassociate Menu Item from an Order
 app.MapDelete("/api/order/{orderId}/menuitem/{menuItemId}", (HHPWDbContext db, int orderId, int menuItemId) =>
