@@ -16,6 +16,7 @@
         public string CustomerEmail { get; set; }
         public string CustomerPhone { get; set; }
         public string OrderStatus { get; set; }
+        public Dictionary<int, int> MenuItemQuantities { get; set; }
         public DateTime? DateClosed { get; set; }
         public ICollection<MenuItem> MenuItems { get; set; }
         public Employee Employee { get; set; }

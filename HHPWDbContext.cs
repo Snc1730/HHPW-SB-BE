@@ -1,5 +1,6 @@
 ﻿using HHPW_SB_BE.Models;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 public class HHPWDbContext : DbContext
 {
@@ -38,6 +39,11 @@ public class HHPWDbContext : DbContext
                 CustomerPhone = "123-456-7890",
                 OrderStatus = "Closed",
                 DateClosed = DateTime.Now.AddDays(1),
+                MenuItemQuantities = new Dictionary<int, int>
+                {
+                    { 1, 2 },  // 2 of menu item with ID 1
+                    { 2, 3 }   // 3 of menu item with ID 2
+                }
             },
         });
 
@@ -55,6 +61,13 @@ public class HHPWDbContext : DbContext
             .HasMany(o => o.MenuItems)
             .WithMany(mi => mi.Orders)
             .UsingEntity(j => j.ToTable("OrderMenuItems"));
+
+        modelBuilder.Entity<Order>()
+           .Property(o => o.MenuItemQuantities)
+           .HasConversion(
+               v => JsonConvert.SerializeObject(v),
+               v => JsonConvert.DeserializeObject<Dictionary<int, int>>(v)
+           );
 
         base.OnModelCreating(modelBuilder);
     }
