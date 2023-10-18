@@ -263,25 +263,27 @@ app.MapPost("/api/order/{orderId}/menuitem/{menuItemId}", (HHPWDbContext db, int
 });
 
 
-//Disassociate Menu Item from an Order
-app.MapDelete("/api/order/{orderId}/menuitem/{menuItemId}", (HHPWDbContext db, int orderId, int menuItemId) =>
+// delete a product from an order 
+app.MapDelete("/api/MenuItemsOrder", (int orderId, int itemId, HHPWDbContext db) =>
 {
-    var order = db.Orders.SingleOrDefault(o => o.Id == orderId);
-    if (order == null)
+    var item = db.MenuItems.Include(m => m.Orders).FirstOrDefault(m => m.Id == itemId);
+
+    if (item == null)
     {
-        return Results.NotFound("Order not found.");
+        return Results.NotFound();
     }
 
-    var menuItem = db.MenuItems.SingleOrDefault(mi => mi.Id == menuItemId);
-    if (menuItem == null)
+    var orderToRemove = item.Orders.FirstOrDefault(o => o.Id == orderId);
+
+    if (orderToRemove == null)
     {
-        return Results.NotFound("Menu item not found.");
+        return Results.NotFound();
     }
 
-    order.MenuItems.Remove(menuItem);
+    item.Orders.Remove(orderToRemove);
     db.SaveChanges();
 
-    return Results.Ok("Menu item disassociated from the order successfully.");
+    return Results.Ok("Item removed from order successfully");
 });
 
 app.Run();
