@@ -182,8 +182,22 @@ app.MapGet("/api/order/{id}", (HHPWDbContext db, int id) =>
     }
 });
 
-//Update Order
-app.MapPut("/api/order/{id}", (HHPWDbContext db, int id, Order updatedOrder) =>
+
+// Function to get the price of a menu item
+decimal GetMenuItemPrice(HHPWDbContext db, int menuItemId)
+{
+    var menuItem = db.MenuItems.SingleOrDefault(mi => mi.Id == menuItemId);
+    if (menuItem == null)
+    {
+        // Handle the case where the menu item doesn't exist (e.g., return a default price)
+        return 0; // Replace with an appropriate default price
+    }
+
+    return menuItem.Price; // Assuming that the menu item has a "Price" property
+}
+
+// Update an order
+app.MapPut("api/order/{id}", (int id, HHPWDbContext db, Order updatedOrder) =>
 {
     var existingOrder = db.Orders.SingleOrDefault(o => o.Id == id);
     if (existingOrder == null)
@@ -191,10 +205,31 @@ app.MapPut("/api/order/{id}", (HHPWDbContext db, int id, Order updatedOrder) =>
         return Results.NotFound();
     }
 
-    // Update the order properties
+    // Update the order properties based on the data in the request
     existingOrder.OrderName = updatedOrder.OrderName;
-    existingOrder.Tip = updatedOrder.Tip;
-    // Update other properties as needed...
+    existingOrder.OrderType = updatedOrder.OrderType;
+    existingOrder.PaymentType = updatedOrder.PaymentType;
+    existingOrder.CustomerName = updatedOrder.CustomerName;
+    existingOrder.CustomerEmail = updatedOrder.CustomerEmail;
+    existingOrder.CustomerPhone = updatedOrder.CustomerPhone;
+
+    // Recalculate OrderPrice based on updated MenuItemQuantities
+    if (updatedOrder.MenuItemQuantities != null)
+    {
+        decimal totalOrderPrice = 0;
+
+        foreach (var menuItemQuantity in updatedOrder.MenuItemQuantities)
+        {
+            decimal menuItemPrice = GetMenuItemPrice(db, menuItemQuantity.Key);
+
+            // Calculate the total price for this menu item and quantity
+            totalOrderPrice += menuItemPrice * menuItemQuantity.Value;
+        }
+
+        existingOrder.OrderPrice = totalOrderPrice;
+    }
+
+    // You can update other properties here...
 
     db.SaveChanges();
     return Results.Ok();
