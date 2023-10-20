@@ -212,6 +212,11 @@ app.MapPut("api/order/{id}", (int id, HHPWDbContext db, Order updatedOrder) =>
     existingOrder.CustomerName = updatedOrder.CustomerName;
     existingOrder.CustomerEmail = updatedOrder.CustomerEmail;
     existingOrder.CustomerPhone = updatedOrder.CustomerPhone;
+    existingOrder.Tip = updatedOrder.Tip; 
+    existingOrder.Review = updatedOrder.Review; 
+    existingOrder.OrderStatus = updatedOrder.OrderStatus;
+    existingOrder.DateClosed = updatedOrder.DateClosed;
+    existingOrder.TotalOrderAmount = updatedOrder.TotalOrderAmount;
 
     // Recalculate OrderPrice based on updated MenuItemQuantities
     if (updatedOrder.MenuItemQuantities != null)
