@@ -100,7 +100,7 @@ app.MapPost("/api/menuitem", (HHPWDbContext db, MenuItem menuItem) =>
 //Get All MenuItems
 app.MapGet("/api/menuitems", (HHPWDbContext db) =>
 {
-    var menuItems = db.MenuItems.ToList();
+    var menuItems = db.MenuItems.OrderBy(item => item.Id).ToList();
     return Results.Ok(menuItems);
 });
 
@@ -163,7 +163,7 @@ app.MapPost("/api/order", (HHPWDbContext db, Order order) =>
 //Get all orders
 app.MapGet("/api/orders", (HHPWDbContext db) =>
 {
-    var orders = db.Orders.ToList();
+    var orders = db.Orders.OrderBy(order => order.Id).ToList();
     return Results.Ok(orders);
 });
 
@@ -212,15 +212,18 @@ app.MapPut("api/order/{id}", (int id, HHPWDbContext db, Order updatedOrder) =>
     existingOrder.CustomerName = updatedOrder.CustomerName;
     existingOrder.CustomerEmail = updatedOrder.CustomerEmail;
     existingOrder.CustomerPhone = updatedOrder.CustomerPhone;
-    existingOrder.Tip = updatedOrder.Tip; 
-    existingOrder.Review = updatedOrder.Review; 
+    existingOrder.Tip = updatedOrder.Tip;
+    existingOrder.Review = updatedOrder.Review;
     existingOrder.OrderStatus = updatedOrder.OrderStatus;
     existingOrder.DateClosed = updatedOrder.DateClosed;
     existingOrder.TotalOrderAmount = updatedOrder.TotalOrderAmount;
 
-    // Recalculate OrderPrice based on updated MenuItemQuantities
+    // Update MenuItemQuantities
     if (updatedOrder.MenuItemQuantities != null)
     {
+        // Explicitly update the MenuItemQuantities
+        existingOrder.MenuItemQuantities = updatedOrder.MenuItemQuantities;
+
         decimal totalOrderPrice = 0;
 
         foreach (var menuItemQuantity in updatedOrder.MenuItemQuantities)
@@ -239,6 +242,7 @@ app.MapPut("api/order/{id}", (int id, HHPWDbContext db, Order updatedOrder) =>
     db.SaveChanges();
     return Results.Ok();
 });
+
 
 //Delete Order
 app.MapDelete("/api/order/{id}", (HHPWDbContext db, int id) =>
